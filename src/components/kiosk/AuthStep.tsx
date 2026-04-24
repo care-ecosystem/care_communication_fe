@@ -1,101 +1,152 @@
-import { useState } from "react";
-import { useTranslation } from "react-i18next";
-import { I18NNAMESPACE } from "@/lib/contants";
-import { useEncounters } from "@/hooks/useEncounters";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card } from "@/components/ui/card";
-import { ScanLine } from "lucide-react";
-import type { Encounter } from "@/lib/types";
+import { Loader2, QrCode } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { toast } from "sonner";
+import { useMutation } from "@tanstack/react-query";
+import { kioskApis } from "@/apis";
+import type { Encounter, PatientCredentials } from "@/types/kiosk";
 
-interface Props {
-  onSuccess: (patientId: string, dob: string, encounters: Encounter[]) => void;
+const formSchema = z.object({
+  patient_id: z.string().trim().nonempty("Patient ID is required"),
+  birth_year: z.string().nonempty("Birth year is required"),
+});
+
+type FormValues = z.infer<typeof formSchema>;
+
+interface AuthStepProps {
+  onSuccess: (credentials: PatientCredentials, encounters: Encounter[]) => void;
 }
 
-export default function AuthStep({ onSuccess }: Props) {
-  const { t } = useTranslation(I18NNAMESPACE);
-  const [patientId, setPatientId] = useState("");
-  const [dob, setDob] = useState("");
+export default function AuthStep({ onSuccess }: AuthStepProps) {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: { patient_id: "", birth_year: "" },
+  });
 
-  const { refetch, isFetching, error } = useEncounters(patientId, dob);
+  const { mutate: authenticate, isPending } = useMutation({
+    mutationFn: (credentials: PatientCredentials) => {
+      return kioskApis.encounters.list(
+        credentials.patient_id,
+        credentials.birth_year,
+      );
+    },
+    onSuccess: (encounters, credentials) => {
+      onSuccess(credentials, encounters);
+    },
+    onError: (err: any) => {
+      const status = err.status;
+      toast.error(
+        status === 403
+          ? "Wrong Patient UUID or Birth Year. Please try again."
+          : "Something went wrong. Please try again.",
+      );
+    },
+  });
 
-  const handleSubmit = async () => {
-    if (!patientId.trim() || !dob) return;
-    const result = await refetch();
-    if (result.data) {
-      onSuccess(patientId, dob, result.data);
-    }
-  };
+  function onSubmit(values: FormValues) {
+    const credentials: PatientCredentials = {
+      patient_id: values.patient_id,
+      birth_year: values.birth_year,
+    };
 
-  const handleScan = () => {
-    // TODO: integrate barcode / QR scanner
-    alert("Scanner not yet implemented");
-  };
+    authenticate(credentials);
+  }
 
-  const submitEnabled = !!patientId.trim() && !!dob;
+  function handleQrPlaceholder() {
+    toast.info("QR scanner coming soon. Please enter the Patient ID manually.");
+  }
 
   return (
-    <div className="max-w-md mx-auto mt-10">
-      <div className="mb-6 space-y-1">
-        <h2 className="text-xl font-semibold text-gray-900">
-          {t("kiosk_feedback_title")}
-        </h2>
-        <p className="text-sm text-gray-500">{t("kiosk_feedback_desc")}</p>
-      </div>
+    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center py-12">
+      <div className="w-full max-w-md bg-white shadow rounded-md p-8 flex flex-col gap-6">
+        <div className="pb-4 border-b border-gray-200">
+          <h4 className="font-semibold text-lg">Patient Verification</h4>
+          <span className="text-sm text-gray-700">
+            Enter your details or scan your QR code to continue
+          </span>
+        </div>
 
-      <Card className="p-6 space-y-5 border border-gray-200 shadow-sm">
-        <div className="space-y-1.5">
-          <Label htmlFor="patient-id">
-            {t("patient_uuid") ?? "Patient ID"}
-          </Label>
-          <div className="flex gap-2">
-            <Input
-              id="patient-id"
-              value={patientId}
-              onChange={(e) => setPatientId(e.target.value)}
-              placeholder="e.g. 23a72471-e17f-448c-83ca-dc3d260d1f05"
-            />
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              onClick={handleScan}
-              title="Scan QR / Barcode"
-            >
-              <ScanLine className="h-4 w-4" />
-            </Button>
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
+          {/* Patient UUID */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium" htmlFor="patient-uuid">
+              Patient UUID <span className="text-red-500">*</span>
+            </label>
+            <div className="flex gap-2">
+              <Input
+                id="patient-uuid"
+                {...register("patient_id")}
+                placeholder="e.g. 23a72471e17f448c..."
+                disabled={isPending}
+                autoComplete="off"
+                spellCheck={false}
+                className="font-mono flex-1"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={handleQrPlaceholder}
+                disabled={isPending}
+                title="Scan QR Code"
+                className="shrink-0"
+              >
+                <QrCode className="h-4 w-4" />
+              </Button>
+            </div>
+            {errors.patient_id && (
+              <p className="text-xs text-red-500">
+                {errors.patient_id.message}
+              </p>
+            )}
           </div>
-        </div>
 
-        <div className="space-y-1.5">
-          <Label htmlFor="dob">{t("patient_dob") ?? "Date of Birth"}</Label>
-          <Input
-            id="dob"
-            type="date"
-            value={dob}
-            onChange={(e) => setDob(e.target.value)}
-          />
-        </div>
+          {/* Birth Year */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium" htmlFor="patient-birth-year">
+              Birth Year <span className="text-red-500">*</span>
+            </label>
+            <Input
+              id="patient-birth-year"
+              type="number"
+              placeholder="e.g. 1985"
+              {...register("birth_year")}
+              disabled={isPending}
+              autoComplete="off"
+              min={1900}
+              max={new Date().getFullYear()}
+            />
+            {errors.birth_year && (
+              <p className="text-xs text-red-500">
+                {errors.birth_year.message}
+              </p>
+            )}
+          </div>
 
-        {error && (
-          <p className="text-sm text-red-600">
-            {t("fetch_encounters_error") ??
-              "Could not find encounters. Please check details and try again."}
-          </p>
-        )}
-
-        <Button
-          className="w-full"
-          variant="default"
-          onClick={handleSubmit}
-          disabled={!submitEnabled || isFetching}
-        >
-          {isFetching
-            ? (t("loading") ?? "Loading…")
-            : (t("verify_patient") ?? "Verify Patient")}
-        </Button>
-      </Card>
+          <Button
+            type="submit"
+            variant="primary_gradient"
+            className="w-full"
+            disabled={isPending}
+          >
+            {isPending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Verifying…
+              </>
+            ) : (
+              "Continue"
+            )}
+          </Button>
+        </form>
+      </div>
     </div>
   );
 }

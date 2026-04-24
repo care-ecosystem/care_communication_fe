@@ -1,29 +1,49 @@
-interface Props {
+import { cn } from "@/lib/utils";
+import { Star } from "lucide-react";
+import { useState } from "react";
+
+interface StarRatingProps {
+  scale: number;
   value: number;
-  max: number;
-  onChange: (val: number) => void;
+  onChange: (value: number) => void;
+  disabled?: boolean;
 }
 
-export default function StarRating({ value, max, onChange }: Props) {
+export default function StarRating({
+  scale,
+  value,
+  onChange,
+  disabled = false,
+}: StarRatingProps) {
+  const [hovered, setHovered] = useState(0);
+  const active = hovered > 0 ? hovered : value;
+
   return (
-    <div className="flex gap-1">
-      {Array.from({ length: max }, (_, i) => i + 1).map((star) => (
+    <div className="flex gap-1" role="group" aria-label="Star rating">
+      {Array.from({ length: scale }, (_, i) => i + 1).map((star) => (
         <button
           key={star}
           type="button"
+          disabled={disabled}
+          aria-label={`${star} star${star !== 1 ? "s" : ""}`}
           onClick={() => onChange(star)}
-          className="focus:outline-none"
-          aria-label={`${star} star`}
+          onMouseEnter={() => !disabled && setHovered(star)}
+          onMouseLeave={() => !disabled && setHovered(0)}
+          className={cn(
+            "rounded transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
+            disabled
+              ? "cursor-not-allowed opacity-50"
+              : "cursor-pointer hover:scale-110",
+          )}
         >
-          <svg
-            className={`h-8 w-8 transition-colors ${
-              star <= value ? "text-yellow-400" : "text-gray-300"
-            } hover:text-yellow-300`}
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-          </svg>
+          <Star
+            className={cn(
+              "h-8 w-8 transition-colors duration-100",
+              star <= active
+                ? "fill-amber-400 text-amber-400"
+                : "fill-transparent text-gray-300",
+            )}
+          />
         </button>
       ))}
     </div>

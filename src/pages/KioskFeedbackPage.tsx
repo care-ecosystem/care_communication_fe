@@ -1,37 +1,43 @@
 import "@/style/index.css";
 import Page from "@/components/ui/page";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import AuthStep from "@/components/kiosk/AuthStep";
 import EncounterListStep from "@/components/kiosk/EncounterListStep";
 import FeedbackFormStep from "@/components/kiosk/FeedbackFormStep";
-import type { Encounter } from "@/lib/types";
+import type { Encounter, PatientCredentials } from "@/types/kiosk";
+
+type Step = 0 | 1 | 2;
 
 export default function KioskFeedbackPage() {
-  const [step, setStep] = useState<0 | 1 | 2>(0);
+  const [step, setStep] = useState<Step>(0);
+  const [credentials, setCredentials] = useState<PatientCredentials | null>(
+    null,
+  );
   const [encounters, setEncounters] = useState<Encounter[]>([]);
   const [selectedEncounter, setSelectedEncounter] = useState<Encounter | null>(
     null,
   );
 
-  const handleAuthSuccess = (
-    _patientId: string,
-    _dob: string,
-    data: Encounter[],
-  ) => {
-    setEncounters(data);
-    setStep(1);
-  };
+  const handleAuthSuccess = useCallback(
+    (creds: PatientCredentials, fetchedEncounters: Encounter[]) => {
+      setCredentials(creds);
+      setEncounters(fetchedEncounters);
+      setStep(1);
+    },
+    [],
+  );
 
-  const handleAddFeedback = (encounter: Encounter) => {
+  const handleAddFeedback = useCallback((encounter: Encounter) => {
     setSelectedEncounter(encounter);
     setStep(2);
-  };
+  }, []);
 
-  const resetToStart = () => {
+  const resetToStart = useCallback(() => {
     setStep(0);
+    setCredentials(null);
     setEncounters([]);
     setSelectedEncounter(null);
-  };
+  }, []);
 
   return (
     <Page
@@ -41,6 +47,7 @@ export default function KioskFeedbackPage() {
     >
       <div className="container mx-auto px-4 pb-12">
         {step === 0 && <AuthStep onSuccess={handleAuthSuccess} />}
+
         {step === 1 && (
           <EncounterListStep
             encounters={encounters}
@@ -48,9 +55,11 @@ export default function KioskFeedbackPage() {
             onBack={resetToStart}
           />
         )}
-        {step === 2 && selectedEncounter && (
+
+        {step === 2 && selectedEncounter && credentials && (
           <FeedbackFormStep
             encounter={selectedEncounter}
+            credentials={credentials}
             onBack={() => setStep(1)}
             onComplete={resetToStart}
           />
