@@ -1,8 +1,16 @@
+import { lazy } from "react";
+import KioskFeedbackPage from "./pages/KioskFeedbackPage";
+
 const manifest = {
-  plugin: "care_quick_assign",
+  plugin: "care_communication",
   routes: {},
+  publicRoutes: {
+    "/feedback": <KioskFeedbackPage />,
+  },
   extends: [],
-  components: {},
+  components: {
+    KioskFeedbackPage: lazy(() => import("./pages/KioskFeedbackPage")),
+  },
   navItems: [],
   adminNavItems: [],
 };
