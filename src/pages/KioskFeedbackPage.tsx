@@ -14,9 +14,6 @@ export default function KioskFeedbackPage() {
     null,
   );
   const [encounters, setEncounters] = useState<Encounter[]>([]);
-  const [selectedEncounter, setSelectedEncounter] = useState<Encounter | null>(
-    null,
-  );
 
   const handleAuthSuccess = useCallback(
     (creds: PatientCredentials, fetchedEncounters: Encounter[]) => {
@@ -27,8 +24,7 @@ export default function KioskFeedbackPage() {
     [],
   );
 
-  const handleAddFeedback = useCallback((encounter: Encounter) => {
-    setSelectedEncounter(encounter);
+  const handleAddFeedback = useCallback(() => {
     setStep(2);
   }, []);
 
@@ -36,7 +32,6 @@ export default function KioskFeedbackPage() {
     setStep(0);
     setCredentials(null);
     setEncounters([]);
-    setSelectedEncounter(null);
   }, []);
 
   return (
@@ -56,9 +51,8 @@ export default function KioskFeedbackPage() {
           />
         )}
 
-        {step === 2 && selectedEncounter && credentials && (
+        {step === 2 && credentials && (
           <FeedbackFormStep
-            encounter={selectedEncounter}
             credentials={credentials}
             onBack={() => setStep(1)}
             onComplete={resetToStart}

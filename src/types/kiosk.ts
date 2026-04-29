@@ -1,6 +1,11 @@
+export interface Organization {
+  name: string;
+}
+
 export interface PatientCredentials {
-  patient_id: string;
-  birth_year: string;
+  encounter_id: string;
+  birth_year?: string;
+  phone_number?: string;
 }
 
 export interface Patient {
@@ -12,6 +17,7 @@ export interface Patient {
   blood_group: string;
   year_of_birth: number;
 }
+
 
 export interface Facility {
   id: string;
@@ -33,6 +39,8 @@ export interface Encounter {
   tags: string[];
   current_location: string | null;
   care_team: unknown[];
+  organizations?: Organization[];
+  feedback_given?: boolean;
 }
 
 export type FeedbackInputType = "rating" | "textarea" | "text";
@@ -78,8 +86,8 @@ export interface FeedbackEntry {
 
 export interface SaveFeedbackPayload {
   feedback: FeedbackEntry[];
-  reference_id: string;
   reference_type: string;
-  patient_id: string;
-  birth_year: string;
+  encounter_id: string;
+  birth_year?: string;
+  phone_number?: string;
 }
