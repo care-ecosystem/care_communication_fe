@@ -37,6 +37,7 @@ const CLASS_LABEL: Record<string, string> = {
   amb: "Ambulatory",
   emer: "Emergency",
   obs: "Observation",
+  hh: "Home Health",
 };
 
 function formatDateTime(iso: string) {
@@ -57,14 +58,18 @@ export default function EncounterListStep({
   return (
     <div className="max-w-2xl mx-auto flex flex-col gap-6 py-8">
       <div>
-        <Button variant="ghost" onClick={onBack} className="mb-2 -ml-2 gap-1">
+        <Button
+          variant="outline"
+          onClick={onBack}
+          className="mb-2 -ml-2 gap-1"
+        >
           <ArrowLeft className="h-4 w-4" />
           Back
         </Button>
         <div className="pb-4 border-b border-gray-200">
-          <h4 className="font-semibold text-lg">Your Encounters</h4>
+          <h4 className="font-semibold text-lg">Your Encounter</h4>
           <span className="text-sm text-gray-700">
-            Select an encounter to submit feedback
+            Your feedback helps us improve
           </span>
         </div>
       </div>
@@ -148,29 +153,30 @@ export default function EncounterListStep({
             {/* Discharge summary */}
             {encounter.discharge_summary_advice && (
               <div className="bg-gray-50 rounded border border-gray-100 p-3">
-                <p className="text-xs text-gray-600 line-clamp-3">
+                <p className="text-sm text-gray-600 line-clamp-3">
                   {encounter.discharge_summary_advice}
                 </p>
               </div>
             )}
 
+            <div className="flex justify-end pt-2 mt-auto">
+              <Button
+                size="sm"
+                onClick={() => onAddFeedback(encounter)}
+                className="gap-2"
+                disabled={encounter?.feedback_given === true}
+              >
+                <MessageSquarePlus className="h-4 w-4" />
+                Give Feedback
+              </Button>
+            </div>
+
             {/* Action button */}
-            {encounter?.feedback_given === true ? (
+            {encounter?.feedback_given === true && (
               <div className="bg-green-50 rounded border border-green-100 p-3">
                 <p className="text-xs text-green-900 line-clamp-3">
-                  Thank you for the feedback
+                  You have already given the feedback
                 </p>
-              </div>
-            ) : (
-              <div className="flex justify-end pt-2 mt-auto">
-                <Button
-                  size="sm"
-                  onClick={() => onAddFeedback(encounter)}
-                  className="gap-2"
-                >
-                  <MessageSquarePlus className="h-4 w-4" />
-                  Give Feedback
-                </Button>
               </div>
             )}
           </div>
