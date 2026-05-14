@@ -8,10 +8,12 @@ import { toast } from "sonner";
 import { useMutation } from "@tanstack/react-query";
 import { kioskApis } from "@/apis";
 import type { Encounter, PatientCredentials } from "@/types/kiosk";
+import { Separator } from "@/components/ui/separator";
 
 const formSchema = z.object({
-  patient_id: z.string().trim().nonempty("Patient ID is required"),
-  birth_year: z.string().nonempty("Birth year is required"),
+  encounter_id: z.string().trim().nonempty("Encounter ID is required"),
+  birth_year: z.string(),
+  phone_number: z.string(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -27,40 +29,41 @@ export default function AuthStep({ onSuccess }: AuthStepProps) {
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: { patient_id: "", birth_year: "" },
+    defaultValues: { encounter_id: "", birth_year: "", phone_number: "" },
   });
 
   const { mutate: authenticate, isPending } = useMutation({
     mutationFn: (credentials: PatientCredentials) => {
       return kioskApis.encounters.list(
-        credentials.patient_id,
+        credentials.encounter_id,
         credentials.birth_year,
+        credentials.phone_number,
       );
     },
     onSuccess: (encounters, credentials) => {
       onSuccess(credentials, encounters);
     },
     onError: (err: any) => {
-      const status = err.status;
-      toast.error(
-        status === 403
-          ? "Wrong Patient UUID or Birth Year. Please try again."
-          : "Something went wrong. Please try again.",
-      );
+      const error =
+        err?.error?.detail || "Something went wrong. Please try again.";
+      toast.error(error);
     },
   });
 
   function onSubmit(values: FormValues) {
     const credentials: PatientCredentials = {
-      patient_id: values.patient_id,
+      encounter_id: values.encounter_id,
       birth_year: values.birth_year,
+      phone_number: values.phone_number,
     };
 
     authenticate(credentials);
   }
 
   function handleQrPlaceholder() {
-    toast.info("QR scanner coming soon. Please enter the Patient ID manually.");
+    toast.info(
+      "QR scanner coming soon. Please enter the Encounter ID manually.",
+    );
   }
 
   return (
@@ -77,12 +80,12 @@ export default function AuthStep({ onSuccess }: AuthStepProps) {
           {/* Patient UUID */}
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium" htmlFor="patient-uuid">
-              Patient UUID <span className="text-red-500">*</span>
+              Encounter ID <span className="text-red-500">*</span>
             </label>
             <div className="flex gap-2">
               <Input
                 id="patient-uuid"
-                {...register("patient_id")}
+                {...register("encounter_id")}
                 placeholder="e.g. 23a72471e17f448c..."
                 disabled={isPending}
                 autoComplete="off"
@@ -101,9 +104,9 @@ export default function AuthStep({ onSuccess }: AuthStepProps) {
                 <QrCode className="h-4 w-4" />
               </Button>
             </div>
-            {errors.patient_id && (
+            {errors.encounter_id && (
               <p className="text-xs text-red-500">
-                {errors.patient_id.message}
+                {errors.encounter_id.message}
               </p>
             )}
           </div>
@@ -111,11 +114,12 @@ export default function AuthStep({ onSuccess }: AuthStepProps) {
           {/* Birth Year */}
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium" htmlFor="patient-birth-year">
-              Birth Year <span className="text-red-500">*</span>
+              Birth Year
             </label>
             <Input
               id="patient-birth-year"
-              type="number"
+              type="text"
+              inputMode="numeric"
               placeholder="e.g. 1985"
               {...register("birth_year")}
               disabled={isPending}
@@ -126,6 +130,35 @@ export default function AuthStep({ onSuccess }: AuthStepProps) {
             {errors.birth_year && (
               <p className="text-xs text-red-500">
                 {errors.birth_year.message}
+              </p>
+            )}
+          </div>
+
+          <div className="relative flex items-center justify-center">
+            <Separator className="w-full border" />
+            <span className="absolute bg-white px-4 text-sm text-gray-500">
+              or
+            </span>
+          </div>
+
+          {/* Phone number */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium" htmlFor="patient-birth-year">
+              Phone Number
+            </label>
+            <Input
+              id="patient-phone-number"
+              type="tel"
+              inputMode="numeric"
+              placeholder="e.g. 9876543210"
+              {...register("phone_number")}
+              disabled={isPending}
+              autoComplete="off"
+              max={new Date().getFullYear()}
+            />
+            {errors.phone_number && (
+              <p className="text-xs text-red-500">
+                {errors.phone_number.message}
               </p>
             )}
           </div>

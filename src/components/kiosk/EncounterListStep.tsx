@@ -6,9 +6,10 @@ import {
   CalendarDays,
   ClipboardList,
   MessageSquarePlus,
+  TagIcon,
   User,
 } from "lucide-react";
-import type { Encounter } from "@/types/kiosk";
+import type { Encounter, Organization } from "@/types/kiosk";
 
 interface EncounterListStepProps {
   encounters: Encounter[];
@@ -16,15 +17,13 @@ interface EncounterListStepProps {
   onBack: () => void;
 }
 
-const STATUS_BADGE: Record<
-  string,
-  "default" | "secondary" | "destructive" | "outline"
-> = {
-  in_progress: "default",
-  completed: "secondary",
-  cancelled: "destructive",
-  planned: "outline",
-};
+const STATUS_BADGE: Record<string, "primary" | "danger" | "green" | "yellow"> =
+  {
+    in_progress: "yellow",
+    completed: "primary",
+    cancelled: "danger",
+    planned: "green",
+  };
 
 const STATUS_LABEL: Record<string, string> = {
   in_progress: "In Progress",
@@ -38,6 +37,7 @@ const CLASS_LABEL: Record<string, string> = {
   amb: "Ambulatory",
   emer: "Emergency",
   obs: "Observation",
+  hh: "Home Health",
 };
 
 function formatDateTime(iso: string) {
@@ -50,31 +50,26 @@ function formatDateTime(iso: string) {
   });
 }
 
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-}
-
 export default function EncounterListStep({
   encounters,
   onAddFeedback,
   onBack,
 }: EncounterListStepProps) {
-  console.log(encounters);
   return (
     <div className="max-w-2xl mx-auto flex flex-col gap-6 py-8">
       <div>
-        <Button variant="ghost" onClick={onBack} className="mb-2 -ml-2 gap-1">
+        <Button
+          variant="outline"
+          onClick={onBack}
+          className="mb-2 -ml-2 gap-1"
+        >
           <ArrowLeft className="h-4 w-4" />
           Back
         </Button>
         <div className="pb-4 border-b border-gray-200">
-          <h4 className="font-semibold text-lg">Your Encounters</h4>
+          <h4 className="font-semibold text-lg">Your Encounter</h4>
           <span className="text-sm text-gray-700">
-            Select an encounter to submit feedback
+            Your feedback helps us improve
           </span>
         </div>
       </div>
@@ -109,55 +104,6 @@ export default function EncounterListStep({
 
       <div className="flex flex-col gap-4">
         {encounters.map((encounter) => (
-          // <div
-          //   key={encounter.id}
-          //   className="bg-white shadow rounded-md p-6 flex flex-col gap-4"
-          // >
-          //   <div className="flex items-start justify-between gap-4">
-          //     <div className="flex flex-col gap-1 min-w-0">
-          //       <div className="flex items-center gap-2 flex-wrap justify-between">
-          //         <span className="font-semibold">
-          //           {CLASS_LABEL[encounter.encounter_class] ??
-          //             encounter.encounter_class}
-          //         </span>
-          //         <Badge
-          //           variant={STATUS_BADGE[encounter.status] ?? "outline"}
-          //           className="text-xs font-normal"
-          //         >
-          //           {STATUS_LABEL[encounter.status] ?? encounter.status}
-          //         </Badge>
-          //       </div>
-          //     </div>
-          //   </div>
-
-          //   <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-6 text-sm text-gray-600">
-          //     <div className="flex items-center gap-2 justify-between">
-          //       <Building2 className="h-3.5 w-3.5 shrink-0 text-gray-400" />
-          //       <span className="truncate">{encounter.facility.name}</span>
-          //     </div>
-          //     <div className="flex items-center gap-2">
-          //       <CalendarDays className="h-3.5 w-3.5 shrink-0 text-gray-400" />
-          //       <span>{formatDateTime(encounter.period.start)}</span>
-          //     </div>
-          //   </div>
-
-          //   {encounter.discharge_summary_advice && (
-          //     <p className="text-xs text-gray-500 italic border-t border-gray-100 pt-3 line-clamp-2">
-          //       {encounter.discharge_summary_advice}
-          //     </p>
-          //   )}
-
-          //   <div className="flex justify-end border-t border-gray-100 pt-3">
-          //     <Button
-          //       size="sm"
-          //       onClick={() => onAddFeedback(encounter)}
-          //       className="gap-2"
-          //     >
-          //       <MessageSquarePlus className="h-4 w-4" />
-          //       Give Feedback
-          //     </Button>
-          //   </div>
-          // </div>
           <div
             key={encounter.id}
             className="bg-white shadow-sm rounded-lg border border-gray-200 p-6 flex flex-col gap-4 hover:shadow-md transition-shadow"
@@ -175,13 +121,27 @@ export default function EncounterListStep({
               </Badge>
             </div>
 
+            <div className="space-y-3 text-sm text-gray-600">
+              <div className="flex items-center gap-3">
+                <TagIcon className="h-4 w-4 shrink-0 text-gray-400" />
+                <Badge
+                  variant={STATUS_BADGE[encounter.status] ?? "outline"}
+                  className="text-xs font-medium shrink-0"
+                >
+                  {CLASS_LABEL[encounter.encounter_class] ??
+                    encounter.encounter_class}
+                </Badge>
+              </div>
+            </div>
+
             {/* Facility and date info */}
             <div className="space-y-3 text-sm text-gray-600">
               <div className="flex items-center gap-3">
                 <Building2 className="h-4 w-4 shrink-0 text-gray-400" />
-                <span className="truncate">
-                  {CLASS_LABEL[encounter.encounter_class] ??
-                    encounter.encounter_class}
+                <span>
+                  {encounter?.organizations
+                    ?.map((organization: Organization) => organization?.name)
+                    .join(", ")}
                 </span>
               </div>
               <div className="flex items-center gap-3">
@@ -193,23 +153,32 @@ export default function EncounterListStep({
             {/* Discharge summary */}
             {encounter.discharge_summary_advice && (
               <div className="bg-gray-50 rounded border border-gray-100 p-3">
-                <p className="text-xs text-gray-600 line-clamp-3">
+                <p className="text-sm text-gray-600 line-clamp-3">
                   {encounter.discharge_summary_advice}
                 </p>
               </div>
             )}
 
-            {/* Action button */}
             <div className="flex justify-end pt-2 mt-auto">
               <Button
                 size="sm"
                 onClick={() => onAddFeedback(encounter)}
                 className="gap-2"
+                disabled={encounter?.feedback_given === true}
               >
                 <MessageSquarePlus className="h-4 w-4" />
                 Give Feedback
               </Button>
             </div>
+
+            {/* Action button */}
+            {encounter?.feedback_given === true && (
+              <div className="bg-green-50 rounded border border-green-100 p-3">
+                <p className="text-xs text-green-900 line-clamp-3">
+                  You have already given the feedback
+                </p>
+              </div>
+            )}
           </div>
         ))}
       </div>

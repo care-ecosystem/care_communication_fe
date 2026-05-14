@@ -8,28 +8,28 @@ import type {
 
 export const kioskApis = {
   encounters: {
-    list: (patient_id: string, birth_year: string) =>
+    list: (encounter_id: string, birth_year?: string, phone_number?: string) =>
       request<Encounter[]>(
         "/api/care_communication/kiosk/encounters/",
         HttpMethod.GET,
-        { patient_id, birth_year },
+        { encounter_id, birth_year, phone_number },
       ),
   },
   feedback: {
     getEncounterFeedbackTemplate: (
-      reference_id: string,
-      patient_id: string,
-      birth_year: string,
+      encounter_id: string,
+      birth_year?: string,
+      phone_number?: string,
     ) =>
       request<FeedbackTemplate>(
         "/api/care_communication/kiosk/feedback-template/",
         HttpMethod.GET,
         {
-          reference_id,
           reference_type: "ENCOUNTER",
           event_type: "COMPLETED",
-          patient_id,
+          encounter_id,
           birth_year,
+          phone_number,
         },
       ),
     save: (data: SaveFeedbackPayload) =>

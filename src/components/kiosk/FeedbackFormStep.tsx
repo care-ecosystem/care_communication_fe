@@ -10,7 +10,6 @@ import StarRating from "./StarRating";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { kioskApis } from "@/apis";
 import type {
-  Encounter,
   FeedbackEntry,
   FeedbackField,
   PatientCredentials,
@@ -18,7 +17,6 @@ import type {
 } from "@/types/kiosk";
 
 interface FeedbackFormStepProps {
-  encounter: Encounter;
   credentials: PatientCredentials;
   onBack: () => void;
   onComplete: () => void;
@@ -55,7 +53,6 @@ function buildDefaults(fields: FeedbackField[]): Record<string, unknown> {
 }
 
 export default function FeedbackFormStep({
-  encounter,
   credentials,
   onBack,
   onComplete,
@@ -65,14 +62,14 @@ export default function FeedbackFormStep({
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["kiosk", "feedback-template", encounter.id],
+    queryKey: ["kiosk", "feedback-template", credentials.encounter_id],
     queryFn: () =>
       kioskApis.feedback.getEncounterFeedbackTemplate(
-        encounter.id,
-        credentials.patient_id,
+        credentials.encounter_id,
         credentials.birth_year,
+        credentials.phone_number,
       ),
-    enabled: !!encounter.id,
+    enabled: !!credentials.encounter_id,
   });
 
   const fields = template?.template_body.fields ?? [];
@@ -128,10 +125,10 @@ export default function FeedbackFormStep({
 
     saveFeedback({
       feedback,
-      reference_id: encounter.id,
       reference_type: "ENCOUNTER",
-      patient_id: credentials.patient_id,
+      encounter_id: credentials.encounter_id,
       birth_year: credentials.birth_year,
+      phone_number: credentials.phone_number,
     });
   }
 
