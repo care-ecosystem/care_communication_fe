@@ -13,19 +13,26 @@ export default function FacilitySelectionStep({ onSelect }: Props) {
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [selected, setSelected] = useState<Facility | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchFacilities = async () => {
+    const loadFacilities = async () => {
       try {
-        const response = await kioskApis.facilities.list();
-        setFacilities(response.results);
+        setLoading(true);
+        setError(null);
+
+        const res = await kioskApis.facilities.list(); // ✅ correct API call
+
+        setFacilities(res.results);
       } catch (error) {
         console.error("Failed to fetch facilities", error);
+        setError("Failed to load facilities. Please try again.");
       } finally {
         setLoading(false);
       }
     };
-    fetchFacilities();
+
+    loadFacilities();
   }, []);
 
   const filtered = facilities.filter((f) =>
@@ -60,6 +67,8 @@ export default function FacilitySelectionStep({ onSelect }: Props) {
             <button
               type="button"
               onClick={() => setIsOpen(!isOpen)}
+              aria-expanded={isOpen}
+              aria-controls="facility-listbox"
               className="w-full h-12 px-4 flex items-center justify-between border border-gray-200 rounded-lg bg-white text-sm text-gray-700 hover:border-teal-500 focus:outline-none focus:border-teal-500 transition-colors"
             >
               <span className={selected ? "text-gray-900" : "text-gray-400"}>
@@ -70,7 +79,11 @@ export default function FacilitySelectionStep({ onSelect }: Props) {
 
             {/* Dropdown Panel */}
             {isOpen && (
-              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
+              <div
+                id="facility-listbox"
+                role="listbox"
+                className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden"
+              >
                 {/* Search */}
                 <div className="flex items-center gap-2 px-3 py-2 border-b border-gray-100">
                   <Search className="h-4 w-4 text-gray-400 shrink-0" />
@@ -91,6 +104,16 @@ export default function FacilitySelectionStep({ onSelect }: Props) {
                       <Loader2 className="h-4 w-4 animate-spin" />
                       <span className="text-sm">Loading...</span>
                     </div>
+                  ) : error ? (
+                    <div className="py-6 text-center text-sm text-red-500">
+                      <p>{error}</p>
+                      <button
+                        className="mt-2 text-teal-700 underline"
+                        onClick={() => window.location.reload()}
+                      >
+                        Retry
+                      </button>
+                    </div>
                   ) : filtered.length === 0 ? (
                     <div className="py-6 text-center text-sm text-gray-400">
                       No facilities found
@@ -98,6 +121,8 @@ export default function FacilitySelectionStep({ onSelect }: Props) {
                   ) : (
                     filtered.map((facility) => (
                       <button
+                        role="option"
+                        aria-selected={selected?.id === facility.id}
                         key={facility.id}
                         type="button"
                         onClick={() => {
@@ -137,7 +162,7 @@ export default function FacilitySelectionStep({ onSelect }: Props) {
           onClick={() => selected && onSelect(selected)}
           className="w-full h-12 bg-teal-700 hover:bg-teal-800 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors"
         >
-          Continue to Feedback 
+          Continue to Feedback
         </button>
 
       </div>

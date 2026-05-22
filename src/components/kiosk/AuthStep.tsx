@@ -67,11 +67,19 @@ export default function AuthStep({ facility, onSuccess }: AuthStepProps) {
   });
 
   function onSubmit(values: FormValues) {
-    authenticate({
+    const payload: PatientCredentials = {
       encounter_id: values.encounter_id,
-      birth_year: values.birth_year,
-      phone_number: values.phone_number,
-    });
+    };
+
+    if (values.birth_year?.trim()) {
+      payload.birth_year = values.birth_year.trim();
+    }
+
+    if (values.phone_number?.trim()) {
+      payload.phone_number = values.phone_number.trim();
+    }
+
+    authenticate(payload);
   }
 
   function handleQrPlaceholder() {
@@ -235,7 +243,7 @@ export default function AuthStep({ facility, onSuccess }: AuthStepProps) {
               ))}
             </div>
             <p className="text-xs text-gray-400">
-              Tap an emoji to submit a quick rating without the full form
+               Tap an emoji to share a quick impression
             </p>
           </div>
 
