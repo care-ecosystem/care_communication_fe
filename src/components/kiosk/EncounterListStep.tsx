@@ -9,9 +9,11 @@ import {
   TagIcon,
   User,
 } from "lucide-react";
-import type { Encounter, Organization } from "@/types/kiosk";
+import type { Encounter, Facility, Organization } from "@/types/kiosk";
+import KioskHeader from "@/components/kiosk/KioskHeader";
 
 interface EncounterListStepProps {
+  facility: Facility | null;
   encounters: Encounter[];
   onAddFeedback: (encounter: Encounter) => void;
   onBack: () => void;
@@ -51,12 +53,13 @@ function formatDateTime(iso: string) {
 }
 
 export default function EncounterListStep({
+  facility,
   encounters,
   onAddFeedback,
   onBack,
 }: EncounterListStepProps) {
   return (
-    <div className="max-w-2xl mx-auto flex flex-col gap-6 py-8">
+    <><KioskHeader facility={facility} /><div className="max-w-2xl mx-auto flex flex-col gap-6 py-8">
       <div>
         <Button
           variant="outline"
@@ -85,7 +88,7 @@ export default function EncounterListStep({
             </p>
             <p className="text-sm text-gray-500">
               {Math.floor(
-                new Date().getFullYear() - encounters[0].patient.year_of_birth,
+                new Date().getFullYear() - encounters[0].patient.year_of_birth
               )}
               {" Y"} •{" "}
               {encounters[0].patient.gender?.toLocaleUpperCase()[0] +
@@ -182,6 +185,6 @@ export default function EncounterListStep({
           </div>
         ))}
       </div>
-    </div>
+    </div></>
   );
 }

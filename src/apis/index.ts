@@ -2,11 +2,20 @@ import { HttpMethod } from "@/apis/types";
 import { request } from "@/apis/query";
 import type {
   Encounter,
+  Facility,
   FeedbackTemplate,
   SaveFeedbackPayload,
 } from "@/types/kiosk";
 
 export const kioskApis = {
+  facilities: {
+    list: () =>
+      request<{ results: Facility[] }>(
+        "/api/v1/getallfacilities/",
+        HttpMethod.GET,
+      ),
+  },
+
   encounters: {
     list: (encounter_id: string, birth_year?: string, phone_number?: string) =>
       request<Encounter[]>(

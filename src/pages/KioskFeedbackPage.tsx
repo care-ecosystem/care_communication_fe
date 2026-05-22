@@ -4,12 +4,15 @@ import { useCallback, useState } from "react";
 import AuthStep from "@/components/kiosk/AuthStep";
 import EncounterListStep from "@/components/kiosk/EncounterListStep";
 import FeedbackFormStep from "@/components/kiosk/FeedbackFormStep";
-import type { Encounter, PatientCredentials } from "@/types/kiosk";
+import type { Encounter, Facility, PatientCredentials } from "@/types/kiosk";
+import FacilitySelectionStep from "@/components/kiosk/FacilitySelectionStep";
 
-type Step = 0 | 1 | 2;
+type Step = -1 | 0 | 1 | 2;
 
 export default function KioskFeedbackPage() {
-  const [step, setStep] = useState<Step>(0);
+  const [step, setStep] = useState<Step>(-1);
+  const [selectedFacility, setSelectedFacility] =
+    useState<Facility | null>(null);
   const [credentials, setCredentials] = useState<PatientCredentials | null>(
     null,
   );
@@ -41,10 +44,19 @@ export default function KioskFeedbackPage() {
       hideTitleOnPage
     >
       <div className="container mx-auto px-4 pb-12">
-        {step === 0 && <AuthStep onSuccess={handleAuthSuccess} />}
+        {step === -1 && (
+          <FacilitySelectionStep
+            onSelect={(facility) => {
+              setSelectedFacility(facility);
+              setStep(0);
+            }}
+          />
+        )}
+        {step === 0 && <AuthStep facility={selectedFacility} onSuccess={handleAuthSuccess} />}
 
         {step === 1 && (
           <EncounterListStep
+            facility={selectedFacility}
             encounters={encounters}
             onAddFeedback={handleAddFeedback}
             onBack={resetToStart}
@@ -53,6 +65,7 @@ export default function KioskFeedbackPage() {
 
         {step === 2 && credentials && (
           <FeedbackFormStep
+            facility={selectedFacility}
             credentials={credentials}
             onBack={() => setStep(1)}
             onComplete={resetToStart}

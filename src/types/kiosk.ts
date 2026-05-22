@@ -1,14 +1,15 @@
-export interface Organization {
+export interface Organization{
   name: string;
 }
 
-export interface PatientCredentials {
+export interface PatientCredentials{
   encounter_id: string;
   birth_year?: string;
   phone_number?: string;
 }
 
-export interface Patient {
+
+export interface Patient{
   id: string;
   name: string;
   gender: string;
@@ -18,13 +19,14 @@ export interface Patient {
   year_of_birth: number;
 }
 
-
-export interface Facility {
+export interface Facility{
   id: string;
   name: string;
+  cover_image_url?: string | null;
+  read_cover_image_url?: string | null;
 }
 
-export interface Encounter {
+export interface Encounter{
   id: string;
   status: string;
   encounter_class: string;
@@ -84,7 +86,7 @@ export interface FeedbackEntry {
   comment?: string;
 }
 
-export interface SaveFeedbackPayload {
+export interface SaveFeedbackPayload{
   feedback: FeedbackEntry[];
   reference_type: string;
   encounter_id: string;

@@ -9,7 +9,9 @@ import { toast } from "sonner";
 import StarRating from "./StarRating";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { kioskApis } from "@/apis";
+import KioskHeader from "@/components/kiosk/KioskHeader";
 import type {
+  Facility,
   FeedbackEntry,
   FeedbackField,
   PatientCredentials,
@@ -17,6 +19,7 @@ import type {
 } from "@/types/kiosk";
 
 interface FeedbackFormStepProps {
+  facility: Facility | null;
   credentials: PatientCredentials;
   onBack: () => void;
   onComplete: () => void;
@@ -53,6 +56,7 @@ function buildDefaults(fields: FeedbackField[]): Record<string, unknown> {
 }
 
 export default function FeedbackFormStep({
+  facility,
   credentials,
   onBack,
   onComplete,
@@ -184,7 +188,7 @@ export default function FeedbackFormStep({
   const { title, description, submit } = template.template_body;
 
   return (
-    <div className="max-w-2xl mx-auto flex flex-col gap-6 py-8">
+    <><KioskHeader facility={facility} /><div className="max-w-2xl mx-auto flex flex-col gap-6 py-8">
       <div>
         <Button
           variant="outline"
@@ -226,11 +230,8 @@ export default function FeedbackFormStep({
                   <StarRating
                     scale={field.scale ?? 5}
                     value={(watch(field.id) as number) ?? 0}
-                    onChange={(val) =>
-                      setValue(field.id, val, { shouldValidate: true })
-                    }
-                    disabled={saving}
-                  />
+                    onChange={(val) => setValue(field.id, val, { shouldValidate: true })}
+                    disabled={saving} />
                   {errors[field.id] && (
                     <p className="text-xs text-red-500">
                       {errors[field.id]?.message as string}
@@ -242,45 +243,41 @@ export default function FeedbackFormStep({
                   placeholder="Add a comment (optional)"
                   disabled={saving}
                   rows={2}
-                  className="resize-none text-sm"
-                />
+                  className="resize-none text-sm" />
               </>
             )}
 
             {(field.input_type === "textarea" ||
               field.input_type === "text") && (
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-medium">
-                  {field.label}
-                  {field.required && (
-                    <span className="text-red-500 ml-1">*</span>
-                  )}
-                </label>
-                <Textarea
-                  {...register(field.id)}
-                  placeholder={
-                    field.required
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-medium">
+                    {field.label}
+                    {field.required && (
+                      <span className="text-red-500 ml-1">*</span>
+                    )}
+                  </label>
+                  <Textarea
+                    {...register(field.id)}
+                    placeholder={field.required
                       ? "Your answer…"
-                      : "Optional — leave blank to skip"
-                  }
-                  disabled={saving}
-                  maxLength={field.max_length}
-                  rows={3}
-                  className="resize-none"
-                />
-                {field.max_length && (
-                  <span className="text-xs text-gray-400 text-right">
-                    {((watch(field.id) as string) ?? "").length} /{" "}
-                    {field.max_length}
-                  </span>
-                )}
-                {errors[field.id] && (
-                  <p className="text-xs text-red-500">
-                    {errors[field.id]?.message as string}
-                  </p>
-                )}
-              </div>
-            )}
+                      : "Optional — leave blank to skip"}
+                    disabled={saving}
+                    maxLength={field.max_length}
+                    rows={3}
+                    className="resize-none" />
+                  {field.max_length && (
+                    <span className="text-xs text-gray-400 text-right">
+                      {((watch(field.id) as string) ?? "").length} /{" "}
+                      {field.max_length}
+                    </span>
+                  )}
+                  {errors[field.id] && (
+                    <p className="text-xs text-red-500">
+                      {errors[field.id]?.message as string}
+                    </p>
+                  )}
+                </div>
+              )}
 
             {index < fields.length - 1 && (
               <hr className="border-gray-100 mt-2" />
@@ -306,6 +303,6 @@ export default function FeedbackFormStep({
           </Button>
         </div>
       </form>
-    </div>
+    </div></>
   );
 }
