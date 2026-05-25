@@ -2,40 +2,34 @@ import "@/style/index.css";
 import Page from "@/components/ui/page";
 import { useCallback, useState } from "react";
 import AuthStep from "@/components/kiosk/AuthStep";
-import EncounterListStep from "@/components/kiosk/EncounterListStep";
 import FeedbackFormStep from "@/components/kiosk/FeedbackFormStep";
-import type { Encounter, Facility, PatientCredentials } from "@/types/kiosk";
 import FacilitySelectionStep from "@/components/kiosk/FacilitySelectionStep";
+import { facilityAuthConfig } from "@/config/facilityAuthConfig";
+import type { Encounter, Facility, PatientCredentials } from "@/types/kiosk";
 
-type Step = -1 | 0 | 1 | 2;
+type Step = -1 | 0 | 1;
 
 export default function KioskFeedbackPage() {
   const [step, setStep] = useState<Step>(-1);
-  const [selectedFacility, setSelectedFacility] =
-    useState<Facility | null>(null);
-  const [credentials, setCredentials] = useState<PatientCredentials | null>(
-    null,
-  );
-  const [encounters, setEncounters] = useState<Encounter[]>([]);
+  const [selectedFacility, setSelectedFacility] = useState<Facility | null>(null);
+  const [credentials, setCredentials] = useState<PatientCredentials | null>(null);
 
   const handleAuthSuccess = useCallback(
-    (creds: PatientCredentials, fetchedEncounters: Encounter[]) => {
+    (creds: PatientCredentials, _encounters: Encounter[]) => {
       setCredentials(creds);
-      setEncounters(fetchedEncounters);
       setStep(1);
     },
     [],
   );
 
-  const handleAddFeedback = useCallback(() => {
-    setStep(2);
-  }, []);
-
   const resetToStart = useCallback(() => {
     setStep(0);
     setCredentials(null);
-    setEncounters([]);
   }, []);
+
+  const authConfig = selectedFacility
+    ? facilityAuthConfig[selectedFacility.id]
+    : null;
 
   return (
     <Page
@@ -52,22 +46,20 @@ export default function KioskFeedbackPage() {
             }}
           />
         )}
-        {step === 0 && <AuthStep facility={selectedFacility} onSuccess={handleAuthSuccess} />}
 
-        {step === 1 && (
-          <EncounterListStep
+        {step === 0 && (
+          <AuthStep
             facility={selectedFacility}
-            encounters={encounters}
-            onAddFeedback={handleAddFeedback}
-            onBack={resetToStart}
+            authConfig={authConfig}
+            onSuccess={handleAuthSuccess}
           />
         )}
 
-        {step === 2 && credentials && (
+        {step === 1 && credentials && (
           <FeedbackFormStep
             facility={selectedFacility}
             credentials={credentials}
-            onBack={() => setStep(1)}
+            onBack={() => setStep(0)}
             onComplete={resetToStart}
           />
         )}

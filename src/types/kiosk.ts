@@ -50,6 +50,9 @@ export type FeedbackInputType = "rating" | "textarea" | "text";
 export interface FeedbackField {
   id: string;
   label: string;
+  icon?: string; 
+  description?: string;        
+  comment_placeholder?: string;
   input_type: FeedbackInputType;
   scale?: number;
   required: boolean;
@@ -93,3 +96,27 @@ export interface SaveFeedbackPayload{
   birth_year?: string;
   phone_number?: string;
 }
+
+export type RatingOption = {
+  value: number;
+  label: string;
+  color: string;
+  bg: string;
+  border: string;
+};
+
+export type RatingQuestionProps = {
+  facility: Facility;
+  title: string;
+  description?: string;
+  icon?: string;
+  currentStep: number;
+  totalSteps: number;
+  commentPlaceholder?: string;
+  initialRating?: number;
+  initialComment?: string;
+  required?: boolean; 
+  onRatingChange?: (rating: number, comment: string) => void;
+  onNext: (rating: number, comment: string) => void;
+  onBack: () => void;
+};

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { Facility } from "@/types/kiosk";
 
 type Props = {
-  facility: Facility | null;
+  facility?: Facility | null;
 };
 
 export default function KioskHeader({ facility }: Props) {
@@ -38,18 +38,16 @@ export default function KioskHeader({ facility }: Props) {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <img
-                  src="https://cdn-icons-png.flaticon.com/512/2967/2967350.png"
-                  alt="Healthcare"
-                  className="w-8 h-8 object-contain"
-                />
+                <div className="flex flex-col items-center justify-center text-white text-xs font-semibold">
+                  <span className="text-lg">🏥</span>
+                </div>
               )}
             </div>
 
             <div>
-              <h1 className="text-2xl font-bold text-[#115e59] leading-tight">
-                {facility?.name ?? "Healthcare Facility"}
-              </h1>
+              <p className="text-sm font-semibold text-gray-900">
+                {facility?.name || "Healthcare Facility"}
+              </p>
               <p className="text-gray-500 text-sm mt-1">
                 Patient Feedback Kiosk
               </p>

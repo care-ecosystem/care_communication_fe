@@ -11,16 +11,14 @@ import { Separator } from "@/components/ui/separator";
 import KioskHeader from "@/components/kiosk/KioskHeader";
 import HeroBanner from "@/components/kiosk/HeroBanner";
 
-const formSchema = z.object({
-  encounter_id: z.string().trim().nonempty("Encounter ID is required"),
-  birth_year: z.string(),
-  phone_number: z.string(),
-});
 
-type FormValues = z.infer<typeof formSchema>;
 
 interface AuthStepProps {
   facility: Facility | null;
+  authConfig: {
+    requireDob: boolean;
+    requirePhone: boolean;
+  } | null;
   onSuccess: (credentials: PatientCredentials, encounters: Encounter[]) => void;
 }
 
@@ -38,7 +36,22 @@ const EMOJI_RATINGS: EmojiRating[] = [
   { emoji: "🤩", line1: "Excellent" },
 ];
 
-export default function AuthStep({ facility, onSuccess }: AuthStepProps) {
+export default function AuthStep({ facility, authConfig, onSuccess }: AuthStepProps) {
+  const formSchema = z.object({
+    encounter_id: z
+      .string()
+      .trim()
+      .nonempty("Patient UHID is required"),
+
+    birth_year: authConfig?.requireDob
+      ? z.string().trim().nonempty("Birth year is required")
+      : z.string().optional(),
+
+    phone_number: authConfig?.requirePhone
+      ? z.string().trim().nonempty("Phone number is required")
+      : z.string().optional(),
+  });
+  type FormValues = z.infer<typeof formSchema>;
   const {
     register,
     handleSubmit,
@@ -125,7 +138,6 @@ export default function AuthStep({ facility, onSuccess }: AuthStepProps) {
                   <button
                     type="button"
                     onClick={handleQrPlaceholder}
-                    disabled={isPending}
                     title="Scan QR Code"
                     className="h-14 w-14 shrink-0 rounded-lg border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50 transition-colors disabled:opacity-50"
                   >
@@ -145,62 +157,66 @@ export default function AuthStep({ facility, onSuccess }: AuthStepProps) {
               </div>
 
               {/* Birth Year */}
-              <div className="flex flex-col gap-1.5">
-                <label
-                  className="text-xs font-semibold uppercase tracking-wider text-gray-600"
-                  htmlFor="patient-birth-year"
-                >
-                  Birth Year <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  id="patient-birth-year"
-                  type="text"
-                  inputMode="numeric"
-                  placeholder="e.g. 1985"
-                  {...register("birth_year")}
-                  disabled={isPending}
-                  autoComplete="off"
-                  className="h-14 rounded-lg text-base focus-visible:ring-[#0f766e]"
-                />
-                {errors.birth_year && (
-                  <p className="text-xs text-red-500">{errors.birth_year.message}</p>
-                )}
-                <p className="text-xs text-gray-400">
-                  This is used only to verify your identity — never shared
-                </p>
-              </div>
-
+              {authConfig?.requireDob && (
+                <div className="flex flex-col gap-1.5">
+                  <label
+                    className="text-xs font-semibold uppercase tracking-wider text-gray-600"
+                    htmlFor="patient-birth-year"
+                  >
+                    Birth Year <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    id="patient-birth-year"
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="e.g. 1985"
+                    {...register("birth_year")}
+                    disabled={isPending}
+                    autoComplete="off"
+                    className="h-14 rounded-lg text-base focus-visible:ring-[#0f766e]"
+                  />
+                  {errors.birth_year && (
+                    <p className="text-xs text-red-500">{errors.birth_year.message}</p>
+                  )}
+                  <p className="text-xs text-gray-400">
+                    This is used only to verify your identity — never shared
+                  </p>
+                </div>
+              )}
               {/* Divider */}
-              <div className="relative flex items-center justify-center">
-                <Separator className="w-full" />
-                <span className="absolute bg-white px-4 text-xs text-gray-400">
-                  or verify with phone number instead
-                </span>
-              </div>
+              {authConfig?.requireDob && authConfig?.requirePhone && (
+                <div className="relative flex items-center justify-center">
+                  <Separator className="w-full" />
+                  <span className="absolute bg-white px-4 text-xs text-gray-400">
+                    or verify with phone number instead
+                  </span>
+                </div>
+              )}
 
               {/* Phone Number */}
-              <div className="flex flex-col gap-1.5">
-                <label
-                  className="text-xs font-semibold uppercase tracking-wider text-gray-600"
-                  htmlFor="patient-phone-number"
-                >
-                  Phone Number
-                </label>
-                <Input
-                  id="patient-phone-number"
-                  type="tel"
-                  inputMode="numeric"
-                  placeholder="e.g. 9876543210"
-                  {...register("phone_number")}
-                  disabled={isPending}
-                  autoComplete="off"
-                  className="h-14 rounded-lg text-base focus-visible:ring-[#0f766e]"
-                />
-                {errors.phone_number && (
-                  <p className="text-xs text-red-500">{errors.phone_number.message}</p>
-                )}
-              </div>
-
+              {authConfig?.requirePhone && (
+                <div className="flex flex-col gap-1.5">
+                  <label
+                    className="text-xs font-semibold uppercase tracking-wider text-gray-600"
+                    htmlFor="patient-phone-number"
+                  >
+                    Phone Number
+                  </label>
+                  <Input
+                    id="patient-phone-number"
+                    type="tel"
+                    inputMode="numeric"
+                    placeholder="e.g. 9876543210"
+                    {...register("phone_number")}
+                    disabled={isPending}
+                    autoComplete="off"
+                    className="h-14 rounded-lg text-base focus-visible:ring-[#0f766e]"
+                  />
+                  {errors.phone_number && (
+                    <p className="text-xs text-red-500">{errors.phone_number.message}</p>
+                  )}
+                </div>
+              )}
               {/* Submit */}
               <button
                 type="submit"
@@ -243,7 +259,7 @@ export default function AuthStep({ facility, onSuccess }: AuthStepProps) {
               ))}
             </div>
             <p className="text-xs text-gray-400">
-               Tap an emoji to share a quick impression
+              Tap an emoji to share a quick impression
             </p>
           </div>
 
