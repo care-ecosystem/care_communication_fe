@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { kioskApis } from "@/apis";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import FeedbackReviewStep from "@/components/kiosk/FeedbackReviewStep";
 import { ArrowLeft } from "lucide-react";
 import RatingQuestion from "@/components/kiosk/RatingQuestion";
 import type {
@@ -79,6 +79,12 @@ export default function FeedbackFormStep({
                 comment: otherComment.trim() || undefined,
             })),
         ];
+        console.log("[FeedbackFormStep] Submitting feedback:", {
+        ratingAnswers,
+        otherComment,
+        feedback,
+        encounter_id: credentials.encounter_id,
+    });
 
         saveFeedback({
             feedback,
@@ -161,67 +167,21 @@ export default function FeedbackFormStep({
         );
     }
 
-    // Final step — textarea fields + submit
-    return (
-        <div className="mx-auto w-full max-w-3xl rounded-3xl border border-gray-100 bg-white p-7 shadow-sm">
-
-            <h2 className="text-2xl font-bold text-gray-900 mb-1">
-                {template.template_body.title}
-            </h2>
-            <p className="text-sm text-gray-500 mb-6">
-                {template.template_body.description}
-            </p>
-
-            {textFields.map((field) => (
-                <div key={field.id} className="mb-6">
-                    <label className="text-sm font-medium text-gray-700 mb-2 block">
-                        {field.label}
-                        {!field.required && (
-                            <span className="text-gray-400 font-normal ml-1">(optional)</span>
-                        )}
-                    </label>
-                    <Textarea
-                        value={otherComment}
-                        onChange={(e) => setOtherComment(e.target.value)}
-
-                        placeholder={field.comment_placeholder ?? (field.required ? "Your answer…" : "Optional — leave blank to skip")}
-                        rows={4}
-                        maxLength={field.max_length}
-                        className="resize-none rounded-2xl"
-                    />
-                    {field.max_length && (
-                        <span className="text-xs text-gray-400 text-right block mt-1">
-                            {otherComment.length} / {field.max_length}
-                        </span>
-                    )}
-                </div>
-            ))}
-
-            <div className="flex items-center gap-3">
-                <button
-                    type="button"
-                    onClick={() => setCurrentStep(ratingFields.length)}
-                    className="flex h-11 shrink-0 items-center gap-1.5 rounded-xl border border-gray-200 px-5 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                >
-                    <ArrowLeft className="h-4 w-4" />
-                    Back
-                </button>
-                <button
-                    type="button"
-                    disabled={saving}
-                    onClick={handleSubmit}
-                    className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-teal-700 text-white text-sm font-semibold hover:opacity-90 disabled:opacity-70"
-                >
-                    {saving ? (
-                        <>
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            Submitting…
-                        </>
-                    ) : (
-                        template.template_body.submit.label
-                    )}
-                </button>
-            </div>
-        </div>
-    );
+    // replace the last return block (// Final step — textarea fields + submit)
+return (
+  <FeedbackReviewStep
+    facility={facility}
+    template={template}
+    ratingFields={ratingFields}
+    textFields={textFields}
+    ratingAnswers={ratingAnswers}
+    otherComment={otherComment}
+    setOtherComment={setOtherComment}
+    saving={saving}
+    currentStep={currentStep}
+    totalSteps={totalSteps}
+    onBack={() => setCurrentStep(ratingFields.length)}
+    onSubmit={handleSubmit}
+  />
+);
 }

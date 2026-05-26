@@ -4,12 +4,11 @@ type FacilityAuthConfig = {
 };
 
 export const facilityAuthConfig: Record<string, FacilityAuthConfig> = {
-  "13efd12a-2148-4615-9dec-0303df48466c": {
+  "baf1571c-bc1b-4c25-9d42-3c3361c58d54": {
     requireDob: true,
     requirePhone: false,
   },
-
-  "fbdef672-9d6b-4d6e-aa54-99fd866b0c9d": {
+  "cba196f0-bbda-42cb-bdd4-bcac8528484c": {
     requireDob: false,
     requirePhone: true,
   },
