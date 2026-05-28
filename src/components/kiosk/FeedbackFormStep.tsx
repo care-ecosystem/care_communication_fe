@@ -14,7 +14,8 @@ import type {
     PatientCredentials,
     SaveFeedbackPayload,
 } from "@/types/kiosk";
-
+import { useTranslation } from "react-i18next";
+import { I18NNAMESPACE } from "@/lib/contants";
 
 
 type RatingAnswer = { rating: number; comment: string };
@@ -35,7 +36,7 @@ export default function FeedbackFormStep({
     const [currentStep, setCurrentStep] = useState(1);
     const [ratingAnswers, setRatingAnswers] = useState<Record<number, RatingAnswer>>({});
     const [otherComment, setOtherComment] = useState("");
-
+    const { t } = useTranslation(I18NNAMESPACE);
     const { data: template, isLoading, error } = useQuery({
         queryKey: ["kiosk", "feedback-template", credentials.encounter_id],
         queryFn: () =>
@@ -60,7 +61,7 @@ export default function FeedbackFormStep({
     const { mutate: saveFeedback, isPending: saving, isSuccess } = useMutation({
         mutationFn: (data: SaveFeedbackPayload) => kioskApis.feedback.save(data),
         onError: (err: any) =>
-            toast.error(err?.message || "Failed to submit. Please try again."),
+            toast.error(err?.message || t("failed_to_submit")),
     });
 
     function handleSubmit() {
@@ -100,7 +101,7 @@ export default function FeedbackFormStep({
         return (
             <div className="flex items-center justify-center py-24 text-gray-400">
                 <Loader2 className="h-6 w-6 animate-spin mr-2" />
-                <span className="text-sm">Loading feedback form…</span>
+                <span className="text-sm">{t("loading_feedback_form")}</span>
             </div>
         );
     }
@@ -110,11 +111,11 @@ export default function FeedbackFormStep({
         return (
             <div className="max-w-lg mx-auto py-12 flex flex-col gap-4">
                 <div className="bg-red-50 border border-red-200 rounded-md p-4 text-sm text-red-700">
-                    {(error as any)?.message || "Failed to load the feedback form."}
+                    {(error as any)?.message || t("failed_to_load_form")}
                 </div>
                 <Button variant="outline" onClick={onBack} className="gap-2 w-fit">
                     <ArrowLeft className="h-4 w-4" />
-                    Go Back
+                    {t("go_back")}
                 </Button>
             </div>
         );
@@ -133,7 +134,7 @@ export default function FeedbackFormStep({
                     </h4>
                 </div>
                 <Button variant="primary_gradient" size="lg" onClick={onComplete} className="min-w-40">
-                    Done
+                {t("done")}
                 </Button>
             </div>
         );
@@ -185,3 +186,4 @@ return (
   />
 );
 }
+

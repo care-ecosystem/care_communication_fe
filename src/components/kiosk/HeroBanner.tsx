@@ -1,6 +1,9 @@
 import { Lock } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { I18NNAMESPACE } from "@/lib/contants";
 
 export default function HeroBanner() {
+  const { t } = useTranslation(I18NNAMESPACE);
   return (
     <div className="relative bg-[#0f766e] rounded-xl overflow-hidden px-10 py-12 w-full">
       {/* Decorative circles */}
@@ -13,21 +16,21 @@ export default function HeroBanner() {
         <div className="inline-flex items-center gap-2 bg-[#0d6b63] border border-[#1a8a80] rounded-full px-4 py-1.5 mb-6">
           <Lock className="h-3.5 w-3.5 text-amber-300" />
           <span className="text-xs text-white font-medium">
-            Secure & Private · Your data is protected
+            {t("secure_private")}
           </span>
         </div>
 
         {/* Heading */}
         <h1 className="text-3xl font-bold text-white leading-tight mb-4">
-          Help Us Improve
+          {t("hero_heading_line1")}
           <br />
-          Your Care
+          {t("hero_heading_line2")}
+
         </h1>
 
         {/* Subtitle */}
         <p className="text-teal-100 text-sm leading-relaxed">
-          Your honest feedback shapes the experience for every patient who walks
-          through our doors. It takes less than 2 minutes.
+          {t("hero_subtitle")}
         </p>
       </div>
     </div>

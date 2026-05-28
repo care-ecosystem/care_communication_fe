@@ -2,12 +2,14 @@ import { useEffect, useState } from "react";
 import { kioskApis } from "@/apis";
 import type { Facility } from "@/types/kiosk";
 import { Loader2, ChevronDown, Search, Building2 } from "lucide-react";
-
+import { useTranslation } from "react-i18next";
+import { I18NNAMESPACE } from "@/lib/contants";
 type Props = {
   onSelect: (facility: Facility) => void;
 };
 
 export default function FacilitySelectionStep({ onSelect }: Props) {
+  const { t } = useTranslation(I18NNAMESPACE); 
   const [facilities, setFacilities] = useState<Facility[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -26,7 +28,7 @@ export default function FacilitySelectionStep({ onSelect }: Props) {
         setFacilities(res.results);
       } catch (error) {
         console.error("Failed to fetch facilities", error);
-        setError("Failed to load facilities. Please try again.");
+        setError(t("failed_to_load_facilities"));
       } finally {
         setLoading(false);
       }
@@ -49,17 +51,17 @@ export default function FacilitySelectionStep({ onSelect }: Props) {
             <Building2 className="h-7 w-7 text-white" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900">
-            Select Facility
+            {t("select_facility")}
           </h1>
           <p className="text-sm text-gray-500">
-            Choose your healthcare facility to continue
+            {t("select_facility_desc")}
           </p>
         </div>
 
         {/* Dropdown */}
         <div className="flex flex-col gap-2">
           <label className="text-xs font-semibold uppercase tracking-wider text-gray-500">
-            Facility
+            {t("facility")}
           </label>
 
           <div className="relative">
@@ -72,7 +74,7 @@ export default function FacilitySelectionStep({ onSelect }: Props) {
               className="w-full h-12 px-4 flex items-center justify-between border border-gray-200 rounded-lg bg-white text-sm text-gray-700 hover:border-teal-500 focus:outline-none focus:border-teal-500 transition-colors"
             >
               <span className={selected ? "text-gray-900" : "text-gray-400"}>
-                {selected ? selected.name : "Search or select a facility..."}
+                {selected ? selected.name : t("search_or_select_facility")}
               </span>
               <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${isOpen ? "rotate-180" : ""}`} />
             </button>
@@ -90,7 +92,7 @@ export default function FacilitySelectionStep({ onSelect }: Props) {
                   <input
                     autoFocus
                     type="text"
-                    placeholder="Search facilities..."
+                    placeholder={t("search_facilities")}
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     className="flex-1 text-sm outline-none placeholder:text-gray-400"
@@ -102,7 +104,7 @@ export default function FacilitySelectionStep({ onSelect }: Props) {
                   {loading ? (
                     <div className="flex items-center justify-center py-6 gap-2 text-gray-400">
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      <span className="text-sm">Loading...</span>
+                      <span className="text-sm">{t("loading")}</span>
                     </div>
                   ) : error ? (
                     <div className="py-6 text-center text-sm text-red-500">
@@ -111,12 +113,12 @@ export default function FacilitySelectionStep({ onSelect }: Props) {
                         className="mt-2 text-teal-700 underline"
                         onClick={() => window.location.reload()}
                       >
-                        Retry
+                       {t("retry")}
                       </button>
                     </div>
                   ) : filtered.length === 0 ? (
                     <div className="py-6 text-center text-sm text-gray-400">
-                      No facilities found
+                      {t("no_facilities_found")}
                     </div>
                   ) : (
                     filtered.map((facility) => (
@@ -162,7 +164,7 @@ export default function FacilitySelectionStep({ onSelect }: Props) {
           onClick={() => selected && onSelect(selected)}
           className="w-full h-12 bg-teal-700 hover:bg-teal-800 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors"
         >
-          Continue to Feedback
+        {t("continue_to_feedback_plain")}
         </button>
 
       </div>

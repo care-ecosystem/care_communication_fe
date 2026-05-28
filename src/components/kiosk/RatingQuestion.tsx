@@ -3,14 +3,9 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import KioskHeader from "@/components/kiosk/KioskHeader";
 import type { RatingOption, RatingQuestionProps } from "@/types/kiosk";
+import { useTranslation } from "react-i18next";
+import { I18NNAMESPACE } from "@/lib/contants";
 
-const ratingOptions: RatingOption[] = [
-  { value: 1, label: "Very poor", color: "text-red-700", bg: "bg-red-50", border: "border-red-300" },
-  { value: 2, label: "Poor", color: "text-orange-600", bg: "bg-orange-50", border: "border-orange-300" },
-  { value: 3, label: "Average", color: "text-amber-700", bg: "bg-amber-50", border: "border-amber-300" },
-  { value: 4, label: "Good", color: "text-lime-700", bg: "bg-lime-50", border: "border-lime-300" },
-  { value: 5, label: "Excellent", color: "text-teal-700", bg: "bg-teal-50", border: "border-teal-300" },
-];
 
 export default function RatingQuestion({
   title,
@@ -18,8 +13,7 @@ export default function RatingQuestion({
   icon,
   currentStep,
   totalSteps,
-  commentPlaceholder = "Tell us more...",
-  
+  commentPlaceholder,
   initialRating,
   initialComment = "",
   required = true,
@@ -33,7 +27,15 @@ export default function RatingQuestion({
   );
   const [comment, setComment] = useState(initialComment ?? "");
   const canProceed = !required || selectedRating !== null;
-
+  const { t } = useTranslation(I18NNAMESPACE);
+  const resolvedPlaceholder = commentPlaceholder ?? t("tell_us_more");
+  const ratingOptions: RatingOption[] = [
+  { value: 1, label: t("very_poor"), color: "text-red-700", bg: "bg-red-50", border: "border-red-300" },
+  { value: 2, label: t("poor"), color: "text-orange-600", bg: "bg-orange-50", border: "border-orange-300" },
+  { value: 3, label: t("average"), color: "text-amber-700", bg: "bg-amber-50", border: "border-amber-300" },
+  { value: 4, label: t("good"), color: "text-lime-700", bg: "bg-lime-50", border: "border-lime-300" },
+  { value: 5, label: t("excellent"), color: "text-teal-700", bg: "bg-teal-50", border: "border-teal-300" },
+];
 
   const activeRating = ratingOptions.find((r) => r.value === selectedRating) ?? null;
 
@@ -44,11 +46,10 @@ export default function RatingQuestion({
       <div className="mb-3 flex items-start justify-between gap-3">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">
-            Rate Your Experience
+            {t("rate_your_experience")}
           </h2>
           <p className="mt-1 text-sm text-gray-500">
-            Step {currentStep} of {totalSteps} — Rate each area, then add
-            optional comments
+            {t("step_of", { current: currentStep, total: totalSteps })} — {t("rate_step_desc")}
           </p>
         </div>
 
@@ -162,9 +163,9 @@ export default function RatingQuestion({
 
       {/* SCALE LABELS */}
       <div className="mb-5 flex justify-between">
-        <span className="text-xs text-gray-400">Very poor</span>
-        <span className="text-xs text-gray-400">Average</span>
-        <span className="text-xs text-gray-400">Excellent</span>
+        <span className="text-xs text-gray-400">{t("very_poor")}</span>
+        <span className="text-xs text-gray-400">{t("average")}</span>
+        <span className="text-xs text-gray-400">{t("excellent")}</span>
       </div>
 
       {/* COMMENT */}
@@ -174,7 +175,7 @@ export default function RatingQuestion({
           setComment(e.target.value);
           onRatingChange?.(selectedRating ?? 0, e.target.value);
         }}
-        placeholder={commentPlaceholder}
+        placeholder={resolvedPlaceholder}
         rows={3}
         className="mb-5 w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm outline-none transition-all focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20" />
 
@@ -186,7 +187,7 @@ export default function RatingQuestion({
           className="flex h-11 shrink-0 items-center gap-1.5 rounded-xl border border-gray-200 px-5 text-sm font-medium text-gray-700 hover:bg-gray-50"
         >
           <ChevronLeft className="h-4 w-4" />
-          Back
+          {t("back")}
         </button>
 
         <button
@@ -200,7 +201,7 @@ export default function RatingQuestion({
               : "cursor-not-allowed bg-gray-100 text-gray-400",
           )}
         >
-          Next
+          {t("next")}
           <ChevronRight className="h-4 w-4" />
         </button>
       </div>

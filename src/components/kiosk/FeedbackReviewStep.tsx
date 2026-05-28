@@ -2,6 +2,8 @@ import { Loader2, ChevronLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import KioskHeader from "@/components/kiosk/KioskHeader";
 import type { Facility, FeedbackField, FeedbackTemplate } from "@/types/kiosk";
+import { useTranslation } from "react-i18next";
+import { I18NNAMESPACE } from "@/lib/contants";
 
 type RatingAnswer = { rating: number; comment: string };
 
@@ -20,19 +22,20 @@ interface FeedbackReviewStepProps {
   onSubmit: () => void;
 }
 
-const RATING_META: Record<number, { label: string; color: string; bg: string; border: string }> = {
-  1: { label: "Very poor",  color: "text-red-700",    bg: "bg-red-50",    border: "border-red-200"    },
-  2: { label: "Poor",       color: "text-orange-600", bg: "bg-orange-50", border: "border-orange-200" },
-  3: { label: "Average",    color: "text-amber-700",  bg: "bg-amber-50",  border: "border-amber-200"  },
-  4: { label: "Good",       color: "text-lime-700",   bg: "bg-lime-50",   border: "border-lime-200"   },
-  5: { label: "Excellent",  color: "text-teal-700",   bg: "bg-teal-50",   border: "border-teal-200"   },
-};
 
 export default function FeedbackReviewStep({
   facility, template, ratingFields, textFields,
   ratingAnswers, otherComment, setOtherComment,
   saving, currentStep, totalSteps, onBack, onSubmit,
 }: FeedbackReviewStepProps) {
+  const { t } = useTranslation(I18NNAMESPACE);
+  const RATING_META: Record<number, { label: string; color: string; bg: string; border: string }> = {
+  1: { label: t("very_poor"),  color: "text-red-700",    bg: "bg-red-50",    border: "border-red-200"    },
+  2: { label: t("poor"),       color: "text-orange-600", bg: "bg-orange-50", border: "border-orange-200" },
+  3: { label: t("average"),    color: "text-amber-700",  bg: "bg-amber-50",  border: "border-amber-200"  },
+  4: { label: t("good"),       color: "text-lime-700",   bg: "bg-lime-50",   border: "border-lime-200"   },
+  5: { label:  t("excellent"),  color: "text-teal-700",   bg: "bg-teal-50",   border: "border-teal-200"   },
+};
   const { title, description, submit } = template.template_body;
 
   return (
@@ -43,9 +46,9 @@ export default function FeedbackReviewStep({
         {/* TOP ROW */}
         <div className="mb-3 flex items-start justify-between gap-3">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Rate Your Experience</h2>
+            <h2 className="text-2xl font-bold text-gray-900">{t("rate_your_experience")}</h2>
             <p className="mt-1 text-sm text-gray-500">
-              Step {currentStep} of {totalSteps} — Review your ratings and submit
+            {t("step_of", { current: currentStep, total: totalSteps })} — {t("review_step_desc")}
             </p>
           </div>
           <div className="flex items-center gap-1.5 pt-0.5">
@@ -104,7 +107,7 @@ export default function FeedbackReviewStep({
                       <span className={cn("text-xs font-medium", meta.color)}>{meta.label}</span>
                     </div>
                   ) : (
-                    <span className="text-xs font-medium text-red-500 mt-0.5">Not rated</span>
+                    <span className="text-xs font-medium text-red-500 mt-0.5">{t("not_rated")}</span>
                   )}
                 </div>
               );
@@ -118,7 +121,7 @@ export default function FeedbackReviewStep({
             <label className="mb-3 flex items-center gap-2 text-sm font-semibold text-gray-700">
               <span>{field.icon ?? "💬"}</span>
               {field.label}
-              {!field.required && <span className="ml-1 text-xs font-normal text-gray-400">(optional)</span>}
+              {!field.required && <span className="ml-1 text-xs font-normal text-gray-400">({t("optional")})</span>}
             </label>
             <textarea
               value={otherComment}
@@ -140,11 +143,11 @@ export default function FeedbackReviewStep({
         <div className="flex items-center gap-3">
           <button type="button" onClick={onBack} disabled={saving}
             className="flex h-11 shrink-0 items-center gap-1.5 rounded-xl border border-gray-200 px-5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50">
-            <ChevronLeft className="h-4 w-4" /> Back
+            <ChevronLeft className="h-4 w-4" /> {t("back")}
           </button>
           <button type="button" disabled={saving} onClick={onSubmit}
             className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-teal-700 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-70">
-            {saving ? <><Loader2 className="h-4 w-4 animate-spin" /> Submitting…</> : (submit?.label ?? "Submit Feedback ✓")}
+            {saving ? <><Loader2 className="h-4 w-4 animate-spin" /> {t("submitting")}</> : (submit?.label ?? "Submit Feedback ✓")}
           </button>
         </div>
 

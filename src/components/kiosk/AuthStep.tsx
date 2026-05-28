@@ -10,6 +10,8 @@ import type { Encounter, Facility, PatientCredentials } from "@/types/kiosk";
 import { Separator } from "@/components/ui/separator";
 import KioskHeader from "@/components/kiosk/KioskHeader";
 import HeroBanner from "@/components/kiosk/HeroBanner";
+import { useTranslation } from "react-i18next";
+import { I18NNAMESPACE } from "@/lib/contants";
 
 
 
@@ -37,18 +39,19 @@ const EMOJI_RATINGS: EmojiRating[] = [
 ];
 
 export default function AuthStep({ facility, authConfig, onSuccess }: AuthStepProps) {
+  const { t } = useTranslation(I18NNAMESPACE);
   const formSchema = z.object({
     encounter_id: z
       .string()
       .trim()
-      .nonempty("Patient UHID is required"),
+      .nonempty(t("patient_uhid_required")),
 
     birth_year: authConfig?.requireDob
-      ? z.string().trim().nonempty("Birth year is required")
+      ? z.string().trim().nonempty(t("birth_year_required"))
       : z.string().optional(),
 
     phone_number: authConfig?.requirePhone
-      ? z.string().trim().nonempty("Phone number is required")
+      ? z.string().trim().nonempty(t("phone_number_required"))
       : z.string().optional(),
   });
   type FormValues = z.infer<typeof formSchema>;
@@ -60,7 +63,7 @@ export default function AuthStep({ facility, authConfig, onSuccess }: AuthStepPr
     resolver: zodResolver(formSchema),
     defaultValues: { encounter_id: "", birth_year: "", phone_number: "" },
   });
-
+  
   const { mutate: authenticate, isPending } = useMutation({
     mutationFn: (credentials: PatientCredentials) => {
       return kioskApis.encounters.list(
@@ -74,7 +77,7 @@ export default function AuthStep({ facility, authConfig, onSuccess }: AuthStepPr
     },
     onError: (err: any) => {
       const error =
-        err?.error?.detail || "Something went wrong. Please try again.";
+        err?.error?.detail || t("failed_to_submit");
       toast.error(error);
     },
   });
@@ -96,7 +99,7 @@ export default function AuthStep({ facility, authConfig, onSuccess }: AuthStepPr
   }
 
   function handleQrPlaceholder() {
-    toast.info("QR scanner coming soon. Please enter the Encounter ID manually.");
+    toast.info(t("qr_coming_soon"))
   }
 
   return (
@@ -109,9 +112,9 @@ export default function AuthStep({ facility, authConfig, onSuccess }: AuthStepPr
           {/* Form Card */}
           <div className="w-full bg-white rounded-2xl p-8 flex flex-col gap-6">
             <div>
-              <h4 className="text-xl font-bold text-gray-900">Patient Verification</h4>
+              <h4 className="text-xl font-bold text-gray-900">{t("patient_verification")}</h4>
               <p className="text-sm text-gray-500 mt-1">
-                Enter your details below, or scan the QR code from your discharge summary to get started.
+               {t("patient_verification_desc")}
               </p>
             </div>
 
@@ -123,13 +126,13 @@ export default function AuthStep({ facility, authConfig, onSuccess }: AuthStepPr
                   className="text-xs font-semibold uppercase tracking-wider text-gray-600"
                   htmlFor="patient-uuid"
                 >
-                  Patient UHID <span className="text-red-500">*</span>
+                  {t("patient_uhid")} <span className="text-red-500">*</span>
                 </label>
                 <div className="flex gap-2">
                   <Input
                     id="patient-uuid"
                     {...register("encounter_id")}
-                    placeholder="e.g. 23a72471e17f448c..."
+                    placeholder={t("patient_uhid_placeholder")}
                     disabled={isPending}
                     autoComplete="off"
                     spellCheck={false}
@@ -138,7 +141,7 @@ export default function AuthStep({ facility, authConfig, onSuccess }: AuthStepPr
                   <button
                     type="button"
                     onClick={handleQrPlaceholder}
-                    title="Scan QR Code"
+                    title={t("scan_qr")}
                     className="h-14 w-14 shrink-0 rounded-lg border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50 transition-colors disabled:opacity-50"
                   >
                     <QrCode className="h-5 w-5" />
@@ -152,7 +155,7 @@ export default function AuthStep({ facility, authConfig, onSuccess }: AuthStepPr
                   className="text-xs text-[#0f766e] hover:underline w-fit"
                   onClick={(e) => e.preventDefault()}
                 >
-                  🔍 Where do I find my Encounter ID?
+                  🔍 {t("where_encounter_id")}
                 </a>
               </div>
 
@@ -163,13 +166,13 @@ export default function AuthStep({ facility, authConfig, onSuccess }: AuthStepPr
                     className="text-xs font-semibold uppercase tracking-wider text-gray-600"
                     htmlFor="patient-birth-year"
                   >
-                    Birth Year <span className="text-red-500">*</span>
+                    {t("birth_year")} <span className="text-red-500">*</span>
                   </label>
                   <Input
                     id="patient-birth-year"
                     type="text"
                     inputMode="numeric"
-                    placeholder="e.g. 1985"
+                    placeholder={t("birth_year_placeholder")}
                     {...register("birth_year")}
                     disabled={isPending}
                     autoComplete="off"
@@ -179,7 +182,7 @@ export default function AuthStep({ facility, authConfig, onSuccess }: AuthStepPr
                     <p className="text-xs text-red-500">{errors.birth_year.message}</p>
                   )}
                   <p className="text-xs text-gray-400">
-                    This is used only to verify your identity — never shared
+                    {t("birth_year_hint")}
                   </p>
                 </div>
               )}
@@ -188,7 +191,7 @@ export default function AuthStep({ facility, authConfig, onSuccess }: AuthStepPr
                 <div className="relative flex items-center justify-center">
                   <Separator className="w-full" />
                   <span className="absolute bg-white px-4 text-xs text-gray-400">
-                    or verify with phone number instead
+                    {t("or_verify_phone")}
                   </span>
                 </div>
               )}
@@ -200,13 +203,13 @@ export default function AuthStep({ facility, authConfig, onSuccess }: AuthStepPr
                     className="text-xs font-semibold uppercase tracking-wider text-gray-600"
                     htmlFor="patient-phone-number"
                   >
-                    Phone Number
+                   {t("phone_number")}
                   </label>
                   <Input
                     id="patient-phone-number"
                     type="tel"
                     inputMode="numeric"
-                    placeholder="e.g. 9876543210"
+                    placeholder={t("phone_number_placeholder")}
                     {...register("phone_number")}
                     disabled={isPending}
                     autoComplete="off"
@@ -226,10 +229,10 @@ export default function AuthStep({ facility, authConfig, onSuccess }: AuthStepPr
                 {isPending ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Verifying…
+                    {t("verifying")}
                   </>
                 ) : (
-                  "Continue to Feedback →"
+                  t("continue_to_feedback")
                 )}
               </button>
             </form>
@@ -237,14 +240,14 @@ export default function AuthStep({ facility, authConfig, onSuccess }: AuthStepPr
 
           {/* Quick emoji rating */}
           <div className="flex flex-col items-center gap-4 py-4">
-            <p className="text-sm text-gray-500">Or share a quick overall impression</p>
+            <p className="text-sm text-gray-500">{t("quick_impression")}</p>
             <div className="flex items-center gap-3">
               {EMOJI_RATINGS.map((item) => (
                 <button
                   key={item.line1}
                   type="button"
                   className="flex flex-col items-center gap-1.5 group"
-                  onClick={() => toast.info(`Quick rating: ${item.line1} ${item.line2 ?? ""}`)}
+                  onClick={() => toast.info(`${t("quick_rating")}: ${item.line1} ${item.line2 ?? ""}`)}
                 >
                   <span className="text-3xl h-14 w-14 rounded-xl border border-gray-200 bg-white flex items-center justify-center group-hover:border-[#0f766e] group-hover:bg-teal-50 transition-colors">
                     {item.emoji}
@@ -259,7 +262,7 @@ export default function AuthStep({ facility, authConfig, onSuccess }: AuthStepPr
               ))}
             </div>
             <p className="text-xs text-gray-400">
-              Tap an emoji to share a quick impression
+              {t("tap_emoji")}
             </p>
           </div>
 

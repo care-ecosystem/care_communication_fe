@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Facility } from "@/types/kiosk";
+import { useTranslation } from "react-i18next";
+import { I18NNAMESPACE } from "@/lib/contants";
 
 type Props = {
   facility?: Facility | null;
@@ -7,7 +9,7 @@ type Props = {
 
 export default function KioskHeader({ facility }: Props) {
   const [time, setTime] = useState("");
-
+  
   useEffect(() => {
     const updateTime = () => {
       setTime(
@@ -22,6 +24,8 @@ export default function KioskHeader({ facility }: Props) {
     const interval = setInterval(updateTime, 1000);
     return () => clearInterval(interval);
   }, []);
+
+  const { t } = useTranslation(I18NNAMESPACE);
 
   return (
     <div className="w-full border-b border-gray-200 pb-5 mb-8">
@@ -46,10 +50,10 @@ export default function KioskHeader({ facility }: Props) {
 
             <div>
               <p className="text-sm font-semibold text-gray-900">
-                {facility?.name || "Healthcare Facility"}
+                {facility?.name || t("healthcare_facility")}
               </p>
               <p className="text-gray-500 text-sm mt-1">
-                Patient Feedback Kiosk
+              {t("patient_feedback_kiosk")}
               </p>
             </div>
           </div>
@@ -57,7 +61,7 @@ export default function KioskHeader({ facility }: Props) {
           {/* Right Section */}
           <div className="text-right">
             <p className="text-lg font-semibold text-gray-700">{time}</p>
-            <p className="text-sm text-gray-400">Secure Session</p>
+            <p className="text-sm text-gray-400">{t("secure_session")}</p>
           </div>
 
         </div>
