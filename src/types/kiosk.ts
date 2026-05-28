@@ -1,14 +1,15 @@
-export interface Organization {
+export interface Organization{
   name: string;
 }
 
-export interface PatientCredentials {
+export interface PatientCredentials{
   encounter_id: string;
   birth_year?: string;
   phone_number?: string;
 }
 
-export interface Patient {
+
+export interface Patient{
   id: string;
   name: string;
   gender: string;
@@ -18,13 +19,14 @@ export interface Patient {
   year_of_birth: number;
 }
 
-
-export interface Facility {
+export interface Facility{
   id: string;
   name: string;
+  cover_image_url?: string | null;
+  read_cover_image_url?: string | null;
 }
 
-export interface Encounter {
+export interface Encounter{
   id: string;
   status: string;
   encounter_class: string;
@@ -48,6 +50,9 @@ export type FeedbackInputType = "rating" | "textarea" | "text";
 export interface FeedbackField {
   id: string;
   label: string;
+  icon?: string; 
+  description?: string;        
+  comment_placeholder?: string;
   input_type: FeedbackInputType;
   scale?: number;
   required: boolean;
@@ -84,10 +89,34 @@ export interface FeedbackEntry {
   comment?: string;
 }
 
-export interface SaveFeedbackPayload {
+export interface SaveFeedbackPayload{
   feedback: FeedbackEntry[];
   reference_type: string;
   encounter_id: string;
   birth_year?: string;
   phone_number?: string;
 }
+
+export type RatingOption = {
+  value: number;
+  label: string;
+  color: string;
+  bg: string;
+  border: string;
+};
+
+export type RatingQuestionProps = {
+  facility: Facility;
+  title: string;
+  description?: string;
+  icon?: string;
+  currentStep: number;
+  totalSteps: number;
+  commentPlaceholder?: string;
+  initialRating?: number;
+  initialComment?: string;
+  required?: boolean; 
+  onRatingChange?: (rating: number, comment: string) => void;
+  onNext: (rating: number, comment: string) => void;
+  onBack: () => void;
+};

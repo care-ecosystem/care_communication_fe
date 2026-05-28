@@ -15,7 +15,7 @@ export const request = async <T>(
   let url = external ? endpoint : CARE_BASE_URL + endpoint;
   let payload: null | string = formdata ? data : JSON.stringify(data);
 
-  if (method === HttpMethod.GET) {
+  if (method === HttpMethod.GET){
     const requestParams = data
       ? `?${Object.keys(data)
           .filter((key) => data[key] !== null && data[key] !== undefined)
